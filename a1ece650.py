@@ -1,21 +1,17 @@
 import sys
+import re
 
-# YOUR CODE GOES HERE
+from cmdparser import CmdParser
+
 
 def main():
-    ### YOUR MAIN CODE GOES HERE
 
-    ### sample code to read from stdin.
-    ### make sure to remove all spurious print statements as required
-    ### by the assignment
     while True:
         line = sys.stdin.readline()
-        if line == '':
+        if not line:
+            print 'EOF detected. Exiting...'
             break
-        print 'read a line:', line
 
-    print 'Finished reading input'
-    # return exit code 0 on successful termination
     sys.exit(0)
 
 if __name__ == '__main__':
