@@ -127,6 +127,7 @@ class CmdParser:
         if (command == 'g'):
             return GenerateCommand()
         else:
+            # this should not happen
             raise Exception("Parse error. Command should be 'g'")
 
     def parse(self, cmd_str):
