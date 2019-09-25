@@ -90,9 +90,9 @@ class GenerateCommand(AbstractCommand):
 
 class CmdParser:
     def __init__(self):
-        self.re_add_update = re.compile("^(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[1-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[1-9][0-9]*[ \t]*\))+)$", re.IGNORECASE)
-        self.re_remove = re.compile("^(r) \"([A-Za-z ]+)\"$", re.IGNORECASE)
-        self.re_generate = re.compile("^(g)$", re.IGNORECASE)
+        self.re_add_update = re.compile("^[ \t]*(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[1-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[1-9][0-9]*[ \t]*\))+)[ \t]*$", re.IGNORECASE)
+        self.re_remove = re.compile("^[ \t]*(r) \"([A-Za-z ]+)\"[ \t]*$", re.IGNORECASE)
+        self.re_generate = re.compile("^[ \t]*(g)[ \t]*$", re.IGNORECASE)
         self.re_coord_str = "((-?\d+),(-?\d+))"
     
     def parse_add_update(self, match):
