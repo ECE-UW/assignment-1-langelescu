@@ -24,15 +24,25 @@ class Segment2d:
 
     def __init__(self, p1, p2):
         '''
-        p1: Point2d object representing the first endpoint of the segment
-        p2: Point2d object representing the second endpoint of the segment 
+        ep1: Point2d object representing the first endpoint of the segment
+        ep2: Point2d object representing the second endpoint of the segment 
         '''
 
-        self.p1 = p1
-        self.p2 = p2
+        self.ep1 = p1
+        self.ep2 = p2
+        self.intersections = []
 
+    def contains_point(self, point):
+        if not isinstance(point, Point2d):
+            raise Exception("Parameter must be an instance of Point2d")
+
+        ibt_x = min(self.ep1.x, self.ep2.x) <= point.x and point.x <= max(self.ep1.x, self.ep2.x)
+        ibt_y = min(self.ep1.y, self.ep2.y) <= point.y and point.y <= max(self.ep1.y, self.ep2.y)
+
+        return True if (ibt_x and ibt_y) else False
+    
     def __str__(self):
-        return '%s - %s' % (str(self.p1), str(self.p2))
+        return '%s - %s' % (str(self.ep1), str(self.ep2))
     
     def __repr__(self):
         return str(self)
@@ -41,8 +51,8 @@ class Segment2d:
         if not isinstance(other, Segment2d):
             return NotImplemented
 
-        return ((self.p1 == other.p1) or (self.p1 == other.p2)) and \
-            ((self.p2 == other.p1) or (self.p2 == other.p2))
+        return ((self.ep1 == other.ep1) or (self.ep1 == other.ep2)) and \
+            ((self.ep2 == other.ep1) or (self.ep2 == other.ep2))
 
 class Street:
 
