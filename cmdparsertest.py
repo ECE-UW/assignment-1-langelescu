@@ -26,10 +26,13 @@ class CmdParserTest(unittest.TestCase):
         
         i11 = r'a "Weber Street" (2,-1) (2,2) (5,5) (5,6) (3,8)'
         command = parser.parse(i11)
+        i11segments = [Segment2d(Point2d(2, -1), Point2d(2,2)), Segment2d(Point2d(2,2), Point2d(5,5)), 
+            Segment2d(Point2d(5,5), Point2d(5,6)), Segment2d(Point2d(5,6), Point2d(3,8))]
+        
         self.assertEqual(command.name, 'add street')
         self.assertEqual(command.street, 'Weber Street')
         self.assertItemsEqual(self.db[command.street], command.points)
-
+        
         i12 = r' a "Weber Street" (2,-1) (2,2) (5,5) (5,6) (3,8)'
         command = parser.parse(i12)
         self.assertEqual(command.name, 'add street')
@@ -94,6 +97,23 @@ class CmdParserTest(unittest.TestCase):
         i3 = r'  g '
         command = parser.parse(i3)
         self.assertEqual(command.name, 'generate graph')
+
+    def test_command_add_update_generate_segments_correctly(self):
+
+        parser = CmdParser()
+        
+        i11 = r'a "Weber Street" (2,-1) (2,2) (5,5) (5,6) (3,8)'
+        i11points = [Point2d(2,-1), Point2d(2,2), Point2d(5,5), Point2d(5,6), Point2d(3,8)]
+        i11segments = [Segment2d(Point2d(2, -1), Point2d(2,2)), Segment2d(Point2d(2,2), Point2d(5,5)), 
+            Segment2d(Point2d(5,5), Point2d(5,6)), Segment2d(Point2d(5,6), Point2d(3,8))]
+        
+        db = {}
+        command = parser.parse(i11)
+        command.execute(db)
+
+        self.assertEqual(command.name, 'add street')
+        self.assertEqual(db[command.street].name, 'Weber Street')
+        self.assertItemsEqual(db[command.street].segments, i11segments)
 
 if __name__ == '__main__':
     unittest.main()

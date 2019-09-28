@@ -2,7 +2,7 @@
 import re
 
 from abc import ABCMeta, abstractmethod
-from model import Point2d
+from model import Point2d, Segment2d, Street, Intersection
 
 class AbstractCommand:
     __metaclass__ = ABCMeta
@@ -33,6 +33,9 @@ class AddStreetCommand(AbstractCommand):
         if self.street in db:
             raise Exception('Invalid command. Street %s has already been added. Use "c" to change.' % self.street)
 
+        new_street = Street(self.street, self.points)
+        db[self.street] = new_street
+
         return (True, 'OK')        
 
 class UpdateStreetCommand(AbstractCommand):
@@ -54,6 +57,9 @@ class UpdateStreetCommand(AbstractCommand):
         if not self.street in db:
             raise Exception('Invalid command. Street %s does not exist in the database. Use "a" to add.' % self.street)
         
+        redefined_street = Street(self.street, self.points)
+        db[self.street] = redefined_street
+        
         return (True, 'OK')
 
 class RemoveStreetCommand(AbstractCommand):
@@ -63,7 +69,6 @@ class RemoveStreetCommand(AbstractCommand):
             street: [string] street name
         '''
         self.name = 'remove street'
-        
         self.street = street
 
     def execute(self, db):
@@ -72,6 +77,8 @@ class RemoveStreetCommand(AbstractCommand):
         '''
         if not self.street in db:
             raise Exception('Invalid command. Street %s does not exist int the database.' % self.street)
+
+        del db[self.street]
 
         return (True, 'OK')
 
@@ -85,22 +92,27 @@ class GenerateCommand(AbstractCommand):
             db: [dictionary of ([string] street, [list of Point2d] points)]
         '''
         if not db:
-            raise Exception('Invalid command. The street database is empty.')
+            raise Exception('Must not see this! Invalid command. The street database is empty.')
+
+        print db 
 
         return (True, 'OK')
 
 class CmdParser:
     def __init__(self):
-        self.re_add_update = re.compile("^[ \t]*(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[1-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[1-9][0-9]*[ \t]*\))+)[ \t]*$", re.IGNORECASE)
-        self.re_remove = re.compile("^[ \t]*(r) \"([A-Za-z ]+)\"[ \t]*$", re.IGNORECASE)
-        self.re_generate = re.compile("^[ \t]*(g)[ \t]*$", re.IGNORECASE)
-        self.re_coord_str = "((-?\d+),(-?\d+))"
+        self.re_add_update = re.compile(r"^[ \t]*(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[1-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[1-9][0-9]*[ \t]*\))+)[ \t]*$", re.IGNORECASE)
+        self.re_remove = re.compile(r"^[ \t]*(r) \"([A-Za-z ]+)\"[ \t]*$", re.IGNORECASE)
+        self.re_generate = re.compile(r"^[ \t]*(g)[ \t]*$", re.IGNORECASE)
+        self.re_coord_str = r"(\([ \t]*(-?\d+)[ \t]*,[ \t]*(-?\d+)[ \t]*\))"
     
     def parse_add_update(self, match):
+
         command = match.group(1)
         street = match.group(2)
+        coordinates = match.group(3)
+
         points = []
-        for i in re.finditer(self.re_coord_str, match.group(3)):
+        for i in re.finditer(self.re_coord_str, coordinates):
             point = Point2d(int(i.group(2)), int(i.group(3)))
             points.append(point)
             
