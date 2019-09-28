@@ -33,6 +33,9 @@ class AddStreetCommand(AbstractCommand):
         if self.street in db:
             raise Exception('Invalid command. Street %s has already been added. Use "c" to change.' % self.street)
 
+        if (len(self.points) <= 1):
+            raise Exception('Invalid command. A street requires at least two points.')
+        
         new_street = Street(self.street, self.points)
         db[self.street] = new_street
 
@@ -94,7 +97,7 @@ class GenerateCommand(AbstractCommand):
         if not db:
             raise Exception('Must not see this! Invalid command. The street database is empty.')
 
-        print db 
+
 
         return (True, 'OK')
 
@@ -115,7 +118,7 @@ class CmdParser:
         for i in re.finditer(self.re_coord_str, coordinates):
             point = Point2d(int(i.group(2)), int(i.group(3)))
             points.append(point)
-            
+
         if (command == 'a'):
             return AddStreetCommand(street, points)
         elif (command == 'c'):
