@@ -1,12 +1,10 @@
-from __future__ import print_function
 
 import sys
-import re
 
 from cmdparser import CmdParser
 
-def main():
 
+def main():
     cmdparser = CmdParser()
     database = {}
 
@@ -15,18 +13,19 @@ def main():
             line = sys.stdin.readline()
             if not line:
                 break
-            
+
             try:
                 command = cmdparser.parse(line)
-                status, msg, _ = command.execute(database)
-            
+                status, msg = command.execute(database)
+
             except Exception as e:
-                print (e, file=sys.stderr)
+                sys.stderr.write(str(e) + "\n")
 
         except KeyboardInterrupt:
-            sys.exit(-1) 
+            sys.exit(-1)
 
     sys.exit(0)
+
 
 if __name__ == '__main__':
     main()
