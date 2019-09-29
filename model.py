@@ -129,6 +129,14 @@ class Segment2d:
         # segments are not collinear, therefore they intersect
         if (((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0))):
             return True, self.compute_intersection(other)
+        elif (d1 == 0 and self.contains(other.ep1)):
+            return True, other.ep1
+        elif (d2 == 0 and self.contains(other.ep2)):
+            return True, other.ep2
+        elif (d3 == 0 and other.contains(self.ep1)):
+            return True, self.ep1
+        elif (d4 == 0 and other.contains(self.ep2)):
+            return True, self.ep2
 
         return False, None
 

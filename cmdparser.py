@@ -188,8 +188,10 @@ class GenerateCommand(AbstractCommand):
                         label_count += 1
 
                 for i in range(len(points) - 1):
-                    es.append((labels[points[i]], labels[points[i + 1]]))
-
+                    edge = (labels[points[i]], labels[points[i + 1]])
+                    es.append(edge)
+        # remove duplicates added by overlapping edges
+        es = list(set(es))
         return vs, es, labels, label_count
 
 
