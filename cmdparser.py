@@ -38,8 +38,7 @@ class AddStreetCommand(AbstractCommand):
         if (len(self.points) <= 1):
             raise Exception('Invalid command. A street requires at least two points.')
 
-        new_street = Street(self.street, self.points)
-        db[self.street] = new_street
+        db[self.street] = self.points
 
         return (False, None)
 
@@ -63,8 +62,7 @@ class UpdateStreetCommand(AbstractCommand):
         if not self.street in db:
             raise Exception('Invalid command. Street %s does not exist in the database. Use "a" to add.' % self.street)
 
-        redefined_street = Street(self.street, self.points)
-        db[self.street] = redefined_street
+        db[self.street] = self.points
 
         return (False, None)
 
@@ -102,9 +100,9 @@ class GenerateCommand(AbstractCommand):
         if not db:
             raise Exception('Must not see this! Invalid command. The street database is empty.')
 
-        intersections = self.find_intersections(db)
-
-        vertices, edges, labels, label_count = self.generate_graph(db)
+        streets = [Street(value[0], value[1]) for value in db.iteritems()]
+        intersections = self.find_intersections(streets)
+        vertices, edges, labels, label_count = self.generate_graph(streets)
 
         v_out = "V = {\n"
         for vertex, label in labels.iteritems():
@@ -123,13 +121,13 @@ class GenerateCommand(AbstractCommand):
 
         return (True, output)
 
-    def find_intersections(self, db):
+    def find_intersections(self, streets):
         intersections = {}
         strseen = {}
-        for str1 in db.values():
+        for str1 in streets:
 
             strseen[str1.name] = {}
-            for str2 in db.values():
+            for str2 in streets:
 
                 if str1 == str2:
                     continue
@@ -164,14 +162,14 @@ class GenerateCommand(AbstractCommand):
 
         return intersections
 
-    def generate_graph(self, db):
+    def generate_graph(self, streets):
 
         vs = []
         es = []
 
         labels = {}
         label_count = 1
-        for street in db.values():
+        for street in streets:
             for seg in street.segments:
 
                 # does not execute if no intersections exist
