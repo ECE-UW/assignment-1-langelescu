@@ -25,7 +25,7 @@ class AddStreetCommand(AbstractCommand):
         '''
         self.name = 'add street'
 
-        self.street = street
+        self.street = street.lower()
         self.points = points
 
     def execute(self, db):
@@ -52,7 +52,7 @@ class UpdateStreetCommand(AbstractCommand):
         '''
         self.name = 'update street'
 
-        self.street = street
+        self.street = street.lower()
         self.points = points
 
     def execute(self, db):
@@ -74,7 +74,7 @@ class RemoveStreetCommand(AbstractCommand):
             street: [string] street name
         '''
         self.name = 'remove street'
-        self.street = street
+        self.street = street.lower()
 
     def execute(self, db):
         '''
