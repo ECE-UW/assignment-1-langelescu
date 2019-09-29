@@ -5,6 +5,7 @@ from cmdparser import CmdParser
 
 
 def main():
+
     cmdparser = CmdParser()
     database = {}
 
@@ -16,7 +17,9 @@ def main():
 
             try:
                 command = cmdparser.parse(line)
-                status, msg = command.execute(database)
+                has_out, out = command.execute(database)
+                if has_out:
+                    sys.stdout.write(out)
 
             except Exception as e:
                 sys.stderr.write(str(e) + "\n")

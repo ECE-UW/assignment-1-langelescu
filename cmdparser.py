@@ -1,18 +1,20 @@
-
 import re
 
 from abc import ABCMeta, abstractmethod
-from model import Point2d, Segment2d, Street, Intersection
+from operator import attrgetter
+from model import Point2d, Segment2d, Street
+
 
 class AbstractCommand:
     __metaclass__ = ABCMeta
-    
+
     def __init__(self):
         self.name = None
-    
+
     @abstractmethod
     def execute(self):
         pass
+
 
 class AddStreetCommand(AbstractCommand):
 
@@ -21,11 +23,11 @@ class AddStreetCommand(AbstractCommand):
             street: [string]  street name
             points: [list of Point2d] coordinates that delimit the street segments
         '''
-        self.name = 'add street' 
-        
+        self.name = 'add street'
+
         self.street = street
         self.points = points
-    
+
     def execute(self, db):
         '''
             db: [dictionary of ([string] street, [list of Point2d] points)]
@@ -35,11 +37,12 @@ class AddStreetCommand(AbstractCommand):
 
         if (len(self.points) <= 1):
             raise Exception('Invalid command. A street requires at least two points.')
-        
+
         new_street = Street(self.street, self.points)
         db[self.street] = new_street
 
-        return (True, 'OK')        
+        return (False, None)
+
 
 class UpdateStreetCommand(AbstractCommand):
 
@@ -49,24 +52,25 @@ class UpdateStreetCommand(AbstractCommand):
             points: [list of Point2d] coordinates that delimit the street segments
         '''
         self.name = 'update street'
-       
+
         self.street = street
         self.points = points
-    
+
     def execute(self, db):
         '''
             db: [dictionary of ([string] street, [list of Point2d] points)]
         '''
         if not self.street in db:
             raise Exception('Invalid command. Street %s does not exist in the database. Use "a" to add.' % self.street)
-        
+
         redefined_street = Street(self.street, self.points)
         db[self.street] = redefined_street
-        
-        return (True, 'OK')
+
+        return (False, None)
+
 
 class RemoveStreetCommand(AbstractCommand):
-    
+
     def __init__(self, street):
         '''
             street: [string] street name
@@ -83,7 +87,8 @@ class RemoveStreetCommand(AbstractCommand):
 
         del db[self.street]
 
-        return (True, 'OK')
+        return (False, None)
+
 
 class GenerateCommand(AbstractCommand):
 
@@ -97,17 +102,109 @@ class GenerateCommand(AbstractCommand):
         if not db:
             raise Exception('Must not see this! Invalid command. The street database is empty.')
 
+        intersections = self.find_intersections(db)
 
+        vertices, edges, labels, label_count = self.generate_graph(db)
 
-        return (True, 'OK')
+        v_out = "V = {\n"
+        for vertex, label in labels.iteritems():
+            v_out += " %s: %10s\n" % (label, vertex)
+        v_out += "}"
+
+        e_out = "E = {\n"
+        for i, edge in enumerate(edges):
+            e_out += " <%s,%s>" % (edge[0], edge[1])
+            if i < len(edges) - 1:
+                e_out += ","
+            e_out += "\n"
+        e_out += "}"
+
+        output = "%s\n%s\n" % (v_out, e_out)
+
+        return (True, output)
+
+    def find_intersections(self, db):
+        intersections = {}
+        strseen = {}
+        for str1 in db.values():
+
+            strseen[str1.name] = {}
+            for str2 in db.values():
+
+                if str1 == str2:
+                    continue
+
+                key1 = max(str1.name, str2.name)
+                key2 = min(str1.name, str2.name)
+
+                if strseen[key1].get(key2, False):
+                    continue
+                else:
+                    strseen[key1][key2] = True
+
+                for seg1 in str1.segments:
+                    for seg2 in str2.segments:
+
+                        # skip fully overlapping segments
+                        if seg1 == seg2:
+                            continue
+
+                        is_ix, ix = seg1.intersect(seg2)
+                        if is_ix:
+                            ix_key = str(ix)
+                            if ix_key not in intersections:
+                                intersections[ix_key] = (ix, [])
+
+                            if seg1 not in intersections[ix_key][1]:
+                                intersections[ix_key][1].append(seg1)
+                                seg1.add_ix(ix)
+                            if seg2 not in intersections[ix_key][1]:
+                                intersections[ix_key][1].append(seg2)
+                                seg2.add_ix(ix)
+
+        return intersections
+
+    def generate_graph(self, db):
+
+        vs = []
+        es = []
+
+        labels = {}
+        label_count = 1
+        for street in db.values():
+            for seg in street.segments:
+
+                # does not execute if no intersections exist
+                # if endpoints are included in the graph will be as a result of
+                # being part of other segments that contain intersections
+                if not seg.intersections:
+                    continue
+
+                points = list(seg.intersections)
+                points.extend([seg.ep1, seg.ep2])
+                points = list(set(points))
+                points = sorted(points, key=attrgetter('x', 'y'))
+
+                for p in points:
+                    if p not in labels:
+                        vs.append(p)
+                        labels[p] = str(label_count)
+                        label_count += 1
+
+                for i in range(len(points) - 1):
+                    es.append((labels[points[i]], labels[points[i+1]]))
+
+        return vs, es, labels, label_count
 
 class CmdParser:
     def __init__(self):
-        self.re_add_update = re.compile(r"^[ \t]*(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[1-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[1-9][0-9]*[ \t]*\))+)[ \t]*$", re.IGNORECASE)
+        self.re_add_update = re.compile(
+            r"^[ \t]*(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[1-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[1-9][0-9]*[ \t]*\))+)[ \t]*$",
+            re.IGNORECASE)
         self.re_remove = re.compile(r"^[ \t]*(r) \"([A-Za-z ]+)\"[ \t]*$", re.IGNORECASE)
         self.re_generate = re.compile(r"^[ \t]*(g)[ \t]*$", re.IGNORECASE)
         self.re_coord_str = r"(\([ \t]*(-?\d+)[ \t]*,[ \t]*(-?\d+)[ \t]*\))"
-    
+
     def parse_add_update(self, match):
 
         command = match.group(1)
@@ -126,11 +223,11 @@ class CmdParser:
         else:
             # this should not happen
             raise Exception("Parse error. Command should be 'a' or 'c'")
-    
+
     def parse_remove(self, match):
         command = match.group(1)
         street = match.group(2)
-        
+
         if (command == 'r'):
             return RemoveStreetCommand(street)
         else:
@@ -139,7 +236,7 @@ class CmdParser:
 
     def parse_generate(self, match):
         command = match.group(1)
-        
+
         if (command == 'g'):
             return GenerateCommand()
         else:
@@ -147,8 +244,8 @@ class CmdParser:
             raise Exception("Parse error. Command should be 'g'")
 
     def parse(self, cmd_str):
-        m = filter(lambda m: m != None, 
-                [regex.match(cmd_str) for regex in [self.re_add_update, self.re_remove, self.re_generate]])
+        m = filter(lambda m: m != None,
+                   [regex.match(cmd_str) for regex in [self.re_add_update, self.re_remove, self.re_generate]])
         if m:
             m = m[0]
             command = {
@@ -160,4 +257,3 @@ class CmdParser:
             return command;
         else:
             raise Exception("Error: Incorrect command format")
-
