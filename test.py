@@ -29,6 +29,28 @@ class A1ece650Tests(unittest.TestCase):
 
         self.assertTrue(True)
 
+    def test_scenario2(self):
+        i1 = r'a "StreetA" (2,3) (4,1) (7,1)'
+        i2 = r'a "StreetB" (5,1) (8,1) (10, 3)'
+
+        parser = CmdParser()
+        db = {}
+
+        c1 = parser.parse(i1)
+        c2 = parser.parse(i2)
+
+        c1.execute(db)
+        c2.execute(db)
+
+        i4 = 'g'
+        c4 = parser.parse(i4)
+        print db
+        has_out, out = c4.execute(db)
+        if has_out:
+            print out
+
+        self.assertTrue(True)
+
 
 if __name__ == '__main__':
     unittest.main()

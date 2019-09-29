@@ -125,8 +125,6 @@ class GenerateCommand(AbstractCommand):
         intersections = {}
         strseen = {}
         for str1 in streets:
-
-            strseen[str1.name] = {}
             for str2 in streets:
 
                 if str1 == str2:
@@ -135,10 +133,10 @@ class GenerateCommand(AbstractCommand):
                 key1 = max(str1.name, str2.name)
                 key2 = min(str1.name, str2.name)
 
-                if strseen[key1].get(key2, False):
+                if key1 in strseen and key2 in strseen[key1]:
                     continue
                 else:
-                    strseen[key1][key2] = True
+                    strseen[key1] = {key2: True}
 
                 for seg1 in str1.segments:
                     for seg2 in str2.segments:
@@ -190,9 +188,10 @@ class GenerateCommand(AbstractCommand):
                         label_count += 1
 
                 for i in range(len(points) - 1):
-                    es.append((labels[points[i]], labels[points[i+1]]))
+                    es.append((labels[points[i]], labels[points[i + 1]]))
 
         return vs, es, labels, label_count
+
 
 class CmdParser:
     def __init__(self):
