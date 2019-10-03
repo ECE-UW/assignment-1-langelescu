@@ -145,18 +145,19 @@ class GenerateCommand(AbstractCommand):
                         if seg1 == seg2:
                             continue
 
-                        is_ix, ix = seg1.intersect(seg2)
+                        is_ix, ixs = seg1.intersect(seg2)
                         if is_ix:
-                            ix_key = str(ix)
-                            if ix_key not in intersections:
-                                intersections[ix_key] = (ix, [])
+                            for ix in ixs:
+                                ix_key = str(ix)
+                                if ix_key not in intersections:
+                                    intersections[ix_key] = (ix, [])
 
-                            if seg1 not in intersections[ix_key][1]:
-                                intersections[ix_key][1].append(seg1)
-                                seg1.add_ix(ix)
-                            if seg2 not in intersections[ix_key][1]:
-                                intersections[ix_key][1].append(seg2)
-                                seg2.add_ix(ix)
+                                if seg1 not in intersections[ix_key][1]:
+                                    intersections[ix_key][1].append(seg1)
+                                    seg1.add_ix(ix)
+                                if seg2 not in intersections[ix_key][1]:
+                                    intersections[ix_key][1].append(seg2)
+                                    seg2.add_ix(ix)
 
         return intersections
 

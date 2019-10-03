@@ -22,13 +22,13 @@ class Point2d:
 
     def __repr__(self):
         return str(self)
-    
+
     def __eq__(self, other):
         if not isinstance(other, Point2d):
             return NotImplemented
 
         return abs(self.x - other.x) < EPSILON and abs(self.y - other.y) < EPSILON
-    
+
     def __ne__(self, other):
         return not self.__eq__(self, other)
 
@@ -40,7 +40,7 @@ class Segment2d:
     def __init__(self, p1, p2):
         '''
         p1: Point2d object representing the first endpoint of the segment
-        p2: Point2d object representing the second endpoint of the segment 
+        p2: Point2d object representing the second endpoint of the segment
         '''
 
         self.ep1 = p1
@@ -61,7 +61,7 @@ class Segment2d:
         orient = self.orient(point)
         xbt = min(self.ep1.x, self.ep2.x) <= point.x and point.x <= max(self.ep1.x, self.ep2.x)
         ybt = min(self.ep1.y, self.ep2.y) <= point.y and point.y <= max(self.ep1.y, self.ep2.y)
-       
+
         if (orient == 0 and xbt and ybt):
             return True
         else:
@@ -128,15 +128,20 @@ class Segment2d:
 
         # segments are not collinear, therefore they intersect
         if (((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0))):
-            return True, self.compute_intersection(other)
+            return True, [self.compute_intersection(other)]
+        elif (d1 == 0 and d2 == 0):
+            if self.contains(other.ep1) and other.contains(self.ep2):
+                return True, [other.ep1, self.ep2]
+            elif self.contains(other.ep2) and other.contains(other.ep1):
+                return True, [self.ep1, other.ep2]
         elif (d1 == 0 and self.contains(other.ep1)):
-            return True, other.ep1
+            return True, [other.ep1]
         elif (d2 == 0 and self.contains(other.ep2)):
-            return True, other.ep2
+            return True, [other.ep2]
         elif (d3 == 0 and other.contains(self.ep1)):
-            return True, self.ep1
+            return True, [self.ep1]
         elif (d4 == 0 and other.contains(self.ep2)):
-            return True, self.ep2
+            return True, [self.ep2]
 
         return False, None
 
@@ -149,10 +154,10 @@ class Segment2d:
 
     def __str__(self):
         return '%s-%s' % (str(self.ep1), str(self.ep2))
-    
+
     def __repr__(self):
         return str(self)
-    
+
     def __eq__(self, other):
         if not isinstance(other, Segment2d):
             return NotImplemented
