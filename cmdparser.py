@@ -19,7 +19,7 @@ class AbstractCommand:
 class AddStreetCommand(AbstractCommand):
 
     def __init__(self, street, points):
-        ''' 
+        '''
             street: [string]  street name
             points: [list of Point2d] coordinates that delimit the street segments
         '''
@@ -33,10 +33,10 @@ class AddStreetCommand(AbstractCommand):
             db: [dictionary of ([string] street, [list of Point2d] points)]
         '''
         if self.street in db:
-            raise Exception('Invalid command. Street %s has already been added. Use "c" to change.' % self.street)
+            raise Exception('Error: Invalid command. Street %s has already been added. Use "c" to change.' % self.street)
 
         if (len(self.points) <= 1):
-            raise Exception('Invalid command. A street requires at least two points.')
+            raise Exception('Error: Invalid command. A street requires at least two points.')
 
         db[self.street] = self.points
 
@@ -46,7 +46,7 @@ class AddStreetCommand(AbstractCommand):
 class UpdateStreetCommand(AbstractCommand):
 
     def __init__(self, street, points):
-        ''' 
+        '''
             street: [string] street name
             points: [list of Point2d] coordinates that delimit the street segments
         '''
@@ -60,7 +60,7 @@ class UpdateStreetCommand(AbstractCommand):
             db: [dictionary of ([string] street, [list of Point2d] points)]
         '''
         if not self.street in db:
-            raise Exception('Invalid command. Street %s does not exist in the database. Use "a" to add.' % self.street)
+            raise Exception('Error: Invalid command. Street %s does not exist in the database. Use "a" to add.' % self.street)
 
         db[self.street] = self.points
 
@@ -81,7 +81,7 @@ class RemoveStreetCommand(AbstractCommand):
             db: [dictionary of ([string] street, [list of Point2d] points)]
         '''
         if not self.street in db:
-            raise Exception('Invalid command. Street %s does not exist int the database.' % self.street)
+            raise Exception('Error: Invalid command. Street %s does not exist int the database.' % self.street)
 
         del db[self.street]
 
@@ -198,7 +198,7 @@ class GenerateCommand(AbstractCommand):
 class CmdParser:
     def __init__(self):
         self.re_add_update = re.compile(
-            r"^[ \t]*(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[1-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[1-9][0-9]*[ \t]*\))+)[ \t]*$",
+            r"^[ \t]*(a|c) \"([A-Za-z ]+)\" ((?:[ \t]*\([ \t]*-?[0-9][0-9]*[ \t]*,[ \t]*-?[ \t]*[0-9][0-9]*[ \t]*\))+)[ \t]*$",
             re.IGNORECASE)
         self.re_remove = re.compile(r"^[ \t]*(r) \"([A-Za-z ]+)\"[ \t]*$", re.IGNORECASE)
         self.re_generate = re.compile(r"^[ \t]*(g)[ \t]*$", re.IGNORECASE)
