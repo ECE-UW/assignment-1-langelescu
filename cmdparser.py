@@ -212,7 +212,7 @@ class CmdParser:
 
         points = []
         for i in re.finditer(self.re_coord_str, coordinates):
-            point = Point2d(int(i.group(2)), int(i.group(3)))
+            point = Point2d(float(i.group(2)), float(i.group(3)))
             points.append(point)
 
         if (command == 'a'):
